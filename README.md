@@ -1,4 +1,5 @@
-pv_plotter_progs
-================
+# ---------------
+# PV plotter progs
+# ---------------
 
-Basic plotting of PV output data via python using Matplotlib
+Basic plotting of PV output data via python and using Matplotlib
