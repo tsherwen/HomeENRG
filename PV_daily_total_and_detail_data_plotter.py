@@ -1,9 +1,14 @@
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 from PV_read_tools import *
+import sys
 
 # Where is the data?
-wd ='/Users/Tomas/Dropbox/Personal/Ele_and_Tomas_s_Shared_Folder/PV_panels_dat_files/'
+try:
+    wd = sys.argv[1]
+except:
+    wd ='<insert_default_directory_here>'
+print wd
 
 # What to plot?
 daily_totals, daily_breakdown = True, False
