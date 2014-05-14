@@ -1,6 +1,7 @@
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 from PV_read_tools import *
+import  numpy  as np
 
 wd ='/Users/Tomas/Dropbox/Personal/Ele_and_Tomas_s_Shared_Folder/PV_panels_dat_files/'
 
@@ -12,6 +13,6 @@ _10_day = y_av_II[win_II:-win_II]
 _5_day  = y_av[win_:-win_]
 last_d = day_kwh 
 
-prt_str = '{:<25}'*4
-print prt_str.format('last day' , '5 day mv. avg.','10 day mv. avg.','15 day mv. avg.')
-print prt_str.format( *[ i[-1] for i in [ last_d, _5_day, _10_day, _15_day ] ])
+prt_str = '{:<25}'*5
+print prt_str.format('last day' , '5 day mv. avg.','10 day mv. avg.','15 day mv. avg.', 'total so far')
+print prt_str.format( *[ i[-1] for i in [ last_d, _5_day, _10_day, _15_day, [np.sum(day_kwh)] ] ])
