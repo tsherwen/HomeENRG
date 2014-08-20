@@ -1,15 +1,9 @@
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 from PV_read_tools import *
-import sys
 
 # get data
-try:
-    wd = sys.argv[1]
-except:
-    wd ='./'#'<insert_default_directory_here>'
-print wd
-
+wd ='/Users/Tomas/Dropbox/Personal/Ele_and_Tomas_s_Shared_Folder/PV_panels_dat_files/'
 dates, day_kwh, labels, y_av, y_av_II, y_av_III , win_, win_II, win_III   = daily_total_read(wd, rm_last=True) #, fn)
 
 # plot
