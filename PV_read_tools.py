@@ -1,38 +1,81 @@
 import numpy as np
-import matplotlib as mpl
 #from scipy.optimize import leastsq
 import scipy.optimize as optimize
 from pylab import *
 from scipy import *
 from math import atan2
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import datetime
 import glob
 import time
+import pandas as pd
+import datetime
 
 def movingaverage(interval, window_size):
     window = np.ones(int(window_size))/float(window_size)
     return np.convolve(interval, window, 'same')
 
 def daily_total_read(wd=None,fn=None,reader=None, rm_last=False):
-    if (reader == None ):
-        if ( fn == None ):
-            reader = open(wd+'getDailyTotals_all.csv', 'rb')
-        else:
-            reader = open(wd+fn, 'rb')
-    data=[]
-    for row in reader:       
-        data.append( np.array([ item.split(',') for item in row.splitlines()] )[0][:, np.newaxis] )
-    data = np.concatenate(data, axis=1)
-    titles, dates, day_kwh = data[:,0], data[0,1:] , data[1,1:]
-    dates, labels  = time_2_num_and_labels(dates)
-    day_kwh = np.array(day_kwh,    np.float )
-    x,    y                  = dates, day_kwh
-    win_, win_II, win_III    = 5,  10, 15   
-    y_av, y_av_II, y_av_III  =  movingaverage(y, win_), movingaverage(y, win_II), movingaverage(y, win_III)
-    if (rm_last):
-        dates, day_kwh, y_av, y_av_II, y_av_III  = [ i[:-1]for i in [dates, day_kwh, y_av, y_av_II, y_av_III  ] ]
-    return dates, day_kwh, labels, y_av, y_av_II, y_av_III , win_, win_II, win_III 
+
+    # set file
+    if isinstance( fn, type(None) ):
+        fn = wd+'getDailyTotals_all.csv'
+    else:
+        fn = wd + fn
+
+    # read csv file
+    df = pd.read_csv( fn, 'r' , delimiter=',')
+    titles = df.columns
+    df.index = pd.to_datetime(df['Date'])
+    print df.index
+
+    # get moving averages on a 5, 10, 15 scale
+    day_kwh = df[' Generated (kW h)'].values
+    y_av     =  movingaverage(day_kwh, 5)
+    y_av_II  = movingaverage(day_kwh, 10)
+    y_av_III = movingaverage(day_kwh, 15)
+    labels = [ num2month(i.month) for i in df.index ]
+
+#    if (rm_last):
+#        dates, day_kwh, y_av, y_av_II, y_av_III  = [ i[:-1]for i in [dates, day_kwh, y_av, y_av_II, y_av_III  ] ]
+#    return [np.array(i) for i in df.index.values, day_kwh, labels, y_av, y_av_II, y_av_III , 5,10, 15  ]
+    return df.index.values, day_kwh, labels, y_av, y_av_II, y_av_III , 5,10, 15 #win_, win_II, win_III 
+
+def num2month(input, reverse=False):
+
+    d={
+        1: 'Jan',
+         2: 'Feb',
+         3: 'Mar',
+         4: 'Apr',
+         5: 'May',
+         6: 'Jun',
+         7: 'Jul',
+         8: 'Aug',
+         9: 'Sep',
+         10: 'Oct',
+         11: 'Nov',
+         12: 'Dec'
+    }
+
+    if reverse:
+        d= {
+        'Jan' : 1,
+        'Feb' : 2,
+        'Mar' : 3,
+        'Apr' : 4,
+        'May' : 5,
+        'Jun' : 6,
+        'Jul' : 7,
+        'Aug' : 8,
+        'Sep' : 9, 
+        'Oct' : 10,
+        'Nov' : 11,
+        'Dec' : 12 
+        }
+
+    return d[input]
 
 def time_2_num_and_labels(dates):
     try:
@@ -54,7 +97,7 @@ def remove_titles(data):
     data_p = np.concatenate( data_p, axis = 1 )
     return data_p, titles
 
-def daily_detail_read(wd=None,reader=None):
+def daily_detail_read(wd=None, reader=None):
     if (reader == None):
         files =  glob.glob(wd+'getDailyDetails_*')
     data=[]                                                                                                                                              
@@ -79,7 +122,6 @@ def fit_sine(data, t):
     data_fit = est_a*np.sin(t+est_c) + est_b
     return data_fit, data_first_guess
 
- 
 def fitSine(tList,yList,freq):
    '''
        freq in Hz

@@ -1,0 +1,6 @@
+*.pyc*
+*.dat*
+*conflicted*copy*
+*.csv*
+*dat*
+*DAT*
