@@ -13,6 +13,7 @@ import pandas as pd
 import datetime
 
 def movingaverage(interval, window_size):
+    """ return moving average for given interval + window size """
     window = np.ones(int(window_size))/float(window_size)
     return np.convolve(interval, window, 'same')
 
@@ -37,10 +38,7 @@ def daily_total_read(wd=None,fn=None,reader=None, rm_last=False):
     y_av_III = movingaverage(day_kwh, 15)
     labels = [ num2month(i.month) for i in df.index ]
 
-#    if (rm_last):
-#        dates, day_kwh, y_av, y_av_II, y_av_III  = [ i[:-1]for i in [dates, day_kwh, y_av, y_av_II, y_av_III  ] ]
-#    return [np.array(i) for i in df.index.values, day_kwh, labels, y_av, y_av_II, y_av_III , 5,10, 15  ]
-    return df.index.values, day_kwh, labels, y_av, y_av_II, y_av_III , 5,10, 15 #win_, win_II, win_III 
+    return df.index.values, day_kwh, labels, y_av, y_av_II, y_av_III , 5,10, 15 
 
 def num2month(input, reverse=False):
 
@@ -79,9 +77,11 @@ def num2month(input, reverse=False):
 
 def time_2_num_and_labels(dates):
     try:
-        labels = [ time.strftime('%b', i) for i in  [time.strptime(date, '%Y-%m-%d') for date in dates]  ]
+        labels = [ time.strftime('%b', i) \
+            for i in  [time.strptime(date, '%Y-%m-%d') for date in dates]  ]
     except:
-        labels = [ time.strftime('%b', i) for i in  [time.strptime(date, '%Y-%m-%d %H:%M') for date in dates]  ]
+        labels = [ time.strftime('%b', i) \
+            for i in [time.strptime(date, '%Y-%m-%d %H:%M') for date in dates] ]
 
     dates = np.array( [mpl.dates.datestr2num(date) for date in dates] )
     return dates, labels 
@@ -105,7 +105,8 @@ def daily_detail_read(wd=None, reader=None):
         reader = open(file)
         print file
         for row in reader:
-            data.append( np.array([ item.split(',') for item in row.splitlines()] )[0][:, np.newaxis] )    
+            data.append( np.array([ item.split(',') \
+                for item in row.splitlines()] )[0][:, np.newaxis] )    
     data = np.concatenate(data, axis=1)
     data, titles  = remove_titles(data)
     dates = data[0,:]
