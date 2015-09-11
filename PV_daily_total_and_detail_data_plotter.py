@@ -24,7 +24,7 @@ if (daily_totals ):
 fig = plt.figure(figsize=(20,10), dpi=80, facecolor='w', edgecolor='k')
 ax1 = fig.add_subplot(111)
 
-if (daily_totals):
+if daily_totals:
     plt.plot(dates_I, min_15_kwh, color='purple')
     plt.plot(dates, day_kwh, marker='x', color='b', alpha=0.3)
     plt.plot(dates[win_:-win_], y_av[win_:-win_], color='green', ls='dashed', label = '5 day moving avg.' )
@@ -35,7 +35,7 @@ if (daily_totals):
     plt.ylabel( 'Daily kWh output' )
     plt.legend(loc='upper right',prop=font_manager.FontProperties(size=20))
 
-if (daily_breakdown): # plot on second y
+if daily_breakdown: # plot on second y
     ax2 = ax1.twinx()
     ax2.plot(dates_I, min_15_kwh, color='purple')
 
