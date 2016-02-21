@@ -17,9 +17,18 @@ def movingaverage(interval, window_size):
     window = np.ones(int(window_size))/float(window_size)
     return np.convolve(interval, window, 'same')
 
-def daily_total_read(wd=None,fn=None,reader=None, rm_last=False):
+def get_PV_daily_data_from_GEO( fn=None, column=r' Generated (kW h)', \
+        return_DataFrame=False ):
+    """ Extract PV data from CSV using pandas read_csv """
 
-    # set file
+    # Get data
+    try:
+        wd = sys.argv[1]
+    except:
+        wd ='./'#'<insert_default_directory_here>'
+    print wd
+
+    # Set file
     if isinstance( fn, type(None) ):
         fn = wd+'getDailyTotals_all.csv'
     else:
@@ -28,17 +37,13 @@ def daily_total_read(wd=None,fn=None,reader=None, rm_last=False):
     # read csv file
     df = pd.read_csv( fn, 'r' , delimiter=',')
     titles = df.columns
-    df.index = pd.to_datetime(df['Date'])
-    print df.index
+    df.index = pd.to_datetime(df['Date'],  dayfirst=True)
 
-    # get moving averages on a 5, 10, 15 scale
-    day_kwh = df[' Generated (kW h)'].values
-    y_av     =  movingaverage(day_kwh, 5)
-    y_av_II  = movingaverage(day_kwh, 10)
-    y_av_III = movingaverage(day_kwh, 15)
-    labels = [ num2month(i.month) for i in df.index ]
+    if return_DataFrame:
+        return  df
+    else:
+        return  df[column], df.index
 
-    return df.index.values, day_kwh, labels, y_av, y_av_II, y_av_III , 5,10, 15 
 
 def num2month(input, reverse=False):
 
@@ -86,35 +91,9 @@ def time_2_num_and_labels(dates):
     dates = np.array( [mpl.dates.datestr2num(date) for date in dates] )
     return dates, labels 
 
-def remove_titles(data):
-    data_p = []
-    titles = data[:,0]
-    for i in range( len( data[0,:] ) ):
-        if data[0,i] == 'Date':
-            print data[:,i]
-        else :
-            data_p.append( data[:,i][:,np.newaxis] )
-    data_p = np.concatenate( data_p, axis = 1 )
-    return data_p, titles
-
-def daily_detail_read(wd=None, reader=None):
-    if (reader == None):
-        files =  glob.glob(wd+'getDailyDetails_*')
-    data=[]                                                                                                                                              
-    for file in files:
-        reader = open(file)
-        print file
-        for row in reader:
-            data.append( np.array([ item.split(',') \
-                for item in row.splitlines()] )[0][:, np.newaxis] )    
-    data = np.concatenate(data, axis=1)
-    data, titles  = remove_titles(data)
-    dates = data[0,:]
-    min_15_kwh = data[1,:] 
-    dates, labels = time_2_num_and_labels(dates)
-    return dates, min_15_kwh, titles, labels
 
 def fit_sine(data, t):
+    """ Fit Sinusoidal to curve """
     guess_a, guess_b, guess_c = np.mean(data), 3*np.std(data)/(2**0.5), 0
     data_first_guess = guess_b*np.sin(t+guess_c) + guess_a
     optimize_func = lambda x: x[0]*np.sin(t+x[2]) + x[1] - data

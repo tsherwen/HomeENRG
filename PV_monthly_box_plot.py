@@ -1,39 +1,15 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from PV_read_tools import *
 
 def main():
     """ Plot up data by month as box plots """
     # get daily totals
-    dates, data = get_PV_daily_data()
+    dates, data = get_PV_daily_data_from_GEO()
 
     # plot up as monthly values
     plot_monthly_boxplots( dates, data )
 
-    #
-    
-    
-    
-def get_PV_daily_data( fn=None, column=r' Generated (kW h)'):
-    """ Extract PV data from CSV using pandas read_csv """
-
-    # Get data
-    try:
-        wd = sys.argv[1]
-    except:
-        wd ='./'#'<insert_default_directory_here>'
-    print wd
-
-    # Set file
-    if isinstance( fn, type(None) ):
-        fn = wd+'getDailyTotals_all.csv'
-    else:
-        fn = wd + fn
-
-    # read csv file
-    df = pd.read_csv( fn, 'r' , delimiter=',')
-    titles = df.columns
-    df.index = pd.to_datetime(df['Date'])
-    return  df[column], df.index
 
 def plot_monthly_boxplots( data, dates, showmeans=True, f_size=20 ):
     """ Plot up PV data by month """

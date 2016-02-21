@@ -6,7 +6,6 @@ from scipy import *
 from scipy import fftpack
 
 # settings
-curve_fit = False # add sinododal fit
 data_analysis = True
 
 # Get data
@@ -16,7 +15,7 @@ except:
     wd ='./'#'<insert_default_directory_here>'
 print wd
 
-fn = 'getDailyTotals_all_II_14_03_09.csv'
+fn = 'getDailyTotals_all.csv'
 dates, day_kwh, labels, y_av, y_av_II, y_av_III , win_, win_II, win_III   = daily_total_read(wd, fn)
 
 # Setup figure
