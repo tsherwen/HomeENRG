@@ -5,9 +5,8 @@ from PV_read_tools import *
 DEBUG=False
 VERBOSE=False
 
-
 def main( rm_last=False, curve_fit=False, f_size=20, \
-    data_variable=r' Generated (kW h)',  \
+    data_variable=r' Generated (kW h)', use_GEO_data=True,  \
     verbose=False, debug=False ):
     """ Plot up data from GEO PV output monitor 
     NOTES:
@@ -15,8 +14,16 @@ def main( rm_last=False, curve_fit=False, f_size=20, \
         - The last days input can be removed with "rm_last"
     """
 
+    use_GEO_data=False
+
+
     # Get data
-    df = get_PV_daily_data_from_GEO( return_DataFrame=True )
+    if use_GEO_data:
+        df = get_PV_daily_data_from_GEO( \
+            data_variable=data_variable, return_DataFrame=True )
+    else:
+        df = get_PV_daily_data_from_EmonPi( \
+            data_variable=data_variable, return_DataFrame=True )
 
     # Setup figure, and Plot up
     fig = plt.figure(figsize=(20,10), dpi=80, facecolor='w', edgecolor='k')

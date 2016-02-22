@@ -17,7 +17,7 @@ def movingaverage(interval, window_size):
     window = np.ones(int(window_size))/float(window_size)
     return np.convolve(interval, window, 'same')
 
-def get_PV_daily_data_from_GEO( fn=None, column=r' Generated (kW h)', \
+def get_PV_daily_data_from_GEO( fn=None, data_variable=r' Generated (kW h)', \
         return_DataFrame=False ):
     """ Extract PV data from CSV using pandas read_csv """
 
@@ -25,7 +25,7 @@ def get_PV_daily_data_from_GEO( fn=None, column=r' Generated (kW h)', \
     try:
         wd = sys.argv[1]
     except:
-        wd ='./'#'<insert_default_directory_here>'
+        wd ='./Geo/'#'<insert_default_directory_here>'
     print wd
 
     # Set file
@@ -36,14 +36,57 @@ def get_PV_daily_data_from_GEO( fn=None, column=r' Generated (kW h)', \
 
     # read csv file
     df = pd.read_csv( fn, 'r' , delimiter=',')
-    titles = df.columns
-    df.index = pd.to_datetime(df['Date'],  dayfirst=True)
+    df.index = pd.to_datetime( df['Date'],  dayfirst=True)
 
     if return_DataFrame:
         return  df
     else:
-        return  df[column], df.index
+        return  df[data_variable], df.index
 
+
+def get_PV_daily_data_from_EmonPi( feed='PV', units='(kWh day$^{-1}$)' ,  \
+        data_variable=r' Generated (kW h)',  reverse_accumaltion=False, \
+        return_DataFrame=False, verbose=False, debug=False,  ):
+    
+    # What is the feed number?
+    feed_ID = get_feed_ID( feed=feed, units=units )
+    
+    # Extract all files?
+    df = get_Emon_feed_df( feed_ID, data_variable=data_variable )
+
+    # Reverse accumulation. 
+    if reverse_accumaltion:
+        df['prev_val'] =  np.concatenate( (np.array( [0.0 ] ), \
+            df[ data_variable ].values[:-1]),  axis=0) 
+        # Subtract previous value
+        df[ data_variable ] = df[ data_variable ] - df['prev_val']
+        df = df.drop('prev_val', 1)
+
+    if return_DataFrame:
+        return  df
+    else:
+        return  df.values, df.index
+    
+def get_Emon_feed_df( feed_ID, data_variable=r' Generated (kW h)', ):
+
+    # Get Directory
+    try:
+        wd = sys.argv[1]
+    except:
+        wd ='./EmonPi/PV/'#'<insert_default_directory_here>'
+    print wd
+
+    files  = glob.glob( wd + '*{}*'.format( feed_ID ) )
+    print files
+    # process all files.
+    # Kludge - Just use first one for now... 
+    df = pd.read_csv( files[-1], 'r' , delimiter=',', header=None)
+    df.columns = ['dates', data_variable ]  
+    df.index = pd.to_datetime( df['dates'], unit='s' )
+    df = df.drop('dates', 1)
+    print df
+    
+    return df
 
 def num2month(input, reverse=False):
 
@@ -117,3 +160,21 @@ def fitSine(tList,yList,freq):
    amplitude = norm([w[0,0],w[1,0]],2)
    bias = w[2,0]
    return (phase,amplitude,bias)
+   
+   
+   
+def get_feed_ID( feed='PV', units='(kWh day$^{-1}$)' ):
+    """ Dictionary of feed ID numbers """
+
+    d = {
+    'GRID': {
+    '(kWh day$^{-1}$)':79875, \
+    '(Wh)' : 79881, 
+    '(W)' : 79815 }, 
+    'PV': {
+    '(kWh day$^{-1}$)':79879, 
+    '(Wh)': 79880, 
+    '(W)': 79814}
+    }[ feed ]
+
+    return d[ units ]
