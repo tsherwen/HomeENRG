@@ -14,8 +14,7 @@ def main( rm_last=False, curve_fit=False, f_size=20, \
         - The last days input can be removed with "rm_last"
     """
 
-    use_GEO_data=False
-
+#    use_GEO_data=False
 
     # Get data
     if use_GEO_data:
