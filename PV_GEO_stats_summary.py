@@ -69,7 +69,7 @@ def prt_overall_stats( df=None):
                  for i in range( num_years) ]
         print npstr.format( col, *vars )
     # So far this year? ( and as a % of annual average and last year
-    titles  = 'Ann. avg', 'this yr.(so far)', '% of ann. avg.', '% of lst. yr.'
+    titles  = 'Ann. avg', 'this yr.(so far)', '% of ann. avg.', '% of lst. yr.', 'max this year'
     pstr = '{:<40}'+ '{:<20}'* len( titles )
     npstr = '{:<40}'+ '{:<20,.3f}'* len( titles )
     print
@@ -82,7 +82,8 @@ def prt_overall_stats( df=None):
         so_far_this_yr = np.sum( df[ col ][365*num_years:].values ) 
         pcent_so_far_of_ann_avg = so_far_this_yr/annual_avg*100
         pcent_so_far_of_lst_yr = so_far_this_yr/last_yr*100
-        vars = annual_avg, so_far_this_yr, pcent_so_far_of_ann_avg, pcent_so_far_of_lst_yr
+        max_so_far_this_yr = np.max( df[ col ][365*num_years:].values )
+        vars = annual_avg, so_far_this_yr, pcent_so_far_of_ann_avg, pcent_so_far_of_lst_yr, max_so_far_this_yr
         
         print npstr.format( col, *vars )
         

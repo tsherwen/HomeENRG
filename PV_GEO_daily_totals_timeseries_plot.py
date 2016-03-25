@@ -7,7 +7,7 @@ VERBOSE=False
 
 def main( rm_last=False, curve_fit=False, f_size=20, \
     data_variable=r' Generated (kW h)', use_GEO_data=True,  \
-    verbose=False, debug=False ):
+    current_yr_only=False, verbose=False, debug=False ):
     """ Plot up data from GEO PV output monitor 
     NOTES:
         - A sinosodal curve is fitted if "curve_fit" == True
@@ -15,13 +15,14 @@ def main( rm_last=False, curve_fit=False, f_size=20, \
     """
 
 #    use_GEO_data=False
+#    current_yr_only=True
 
     # Get data
     if use_GEO_data:
-        df = get_PV_daily_data_from_GEO( \
+        df = get_PV_daily_data_from_GEO( current_yr_only=current_yr_only, \
             data_variable=data_variable, return_DataFrame=True )
     else:
-        df = get_PV_daily_data_from_EmonPi( \
+        df = get_PV_daily_data_from_EmonPi( current_yr_only=current_yr_only, \
             data_variable=data_variable, return_DataFrame=True )
 
     # Setup figure, and Plot up
@@ -80,7 +81,8 @@ def beatify_plot( data=None, dates=None, f_size=20 ):
 
     # Beautify plot
 #    plt.xticks( dates[2::31], labels[2::31], rotation=90, fontsize=f_size )
-#    plt.xlim( dates[0]-1, dates[-1]+1 )
+    buffer_x_axis = datetime.timedelta(days=1)
+    plt.xlim( dates[0]-buffer_x_axis, dates[-1]+buffer_x_axis )
     plt.ylabel( 'Daily kWh output', fontsize=f_size )
     plt.legend( loc='upper left', fontsize=f_size )
     plt.title( 'PV output, York (3.6 kW SunPower + GOODWE inverter)', \

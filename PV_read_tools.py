@@ -18,10 +18,10 @@ def movingaverage(interval, window_size):
     return np.convolve(interval, window, 'same')
 
 def get_PV_daily_data_from_GEO( fn=None, data_variable=r' Generated (kW h)', \
-        return_DataFrame=False ):
+        return_DataFrame=False, current_yr_only=False ):
     """ Extract PV data from CSV using pandas read_csv """
 
-    # Get data
+    # Get data location, assuming default directory if no arguements given
     try:
         wd = sys.argv[1]
     except:
@@ -33,11 +33,15 @@ def get_PV_daily_data_from_GEO( fn=None, data_variable=r' Generated (kW h)', \
         fn = wd+'getDailyTotals_all.csv'
     else:
         fn = wd + fn
-
+    
     # read csv file
     df = pd.read_csv( fn, 'r' , delimiter=',')
     df.index = pd.to_datetime( df['Date'],  dayfirst=True)
 
+    # Limit data to current year?
+    if current_yr_only:
+        df = df[datetime.datetime(df.index[-1].year, 1, 1): ] 
+    
     if return_DataFrame:
         return  df
     else:
@@ -46,7 +50,12 @@ def get_PV_daily_data_from_GEO( fn=None, data_variable=r' Generated (kW h)', \
 
 def get_PV_daily_data_from_EmonPi( feed='PV', units='(kWh day$^{-1}$)' ,  \
         data_variable=r' Generated (kW h)',  reverse_accumaltion=False, \
-        return_DataFrame=False, verbose=False, debug=False,  ):
+        return_DataFrame=False, current_yr_only=False,\
+        verbose=False, debug=False,  ):
+    """ Get Data from EmonPi data logger
+    NOTES:
+     - This currently uses downloaded data. Update to online feeds. 
+    """
     
     # What is the feed number?
     feed_ID = get_feed_ID( feed=feed, units=units )
@@ -62,13 +71,22 @@ def get_PV_daily_data_from_EmonPi( feed='PV', units='(kWh day$^{-1}$)' ,  \
         df[ data_variable ] = df[ data_variable ] - df['prev_val']
         df = df.drop('prev_val', 1)
 
+    # Limit data to current year?
+    if current_yr_only:
+        df = df[datetime.datetime(df.index[-1].year, 1, 1): ]
+        
     if return_DataFrame:
         return  df
     else:
         return  df.values, df.index
     
 def get_Emon_feed_df( feed_ID, data_variable=r' Generated (kW h)', ):
-
+    """ Get feed data from EmonPi
+    NOTES:
+     - This currently works via extracting from downloaded files, 
+    but could work via online feeds on on local network. <= UPDATE THIS.
+    """
+    
     # Get Directory
     try:
         wd = sys.argv[1]
@@ -89,7 +107,7 @@ def get_Emon_feed_df( feed_ID, data_variable=r' Generated (kW h)', ):
     return df
 
 def num2month(input, reverse=False):
-
+    """ Convert number of month to abrv. month name"""
     d={
         1: 'Jan',
          2: 'Feb',
@@ -123,20 +141,24 @@ def num2month(input, reverse=False):
 
     return d[input]
 
-def time_2_num_and_labels(dates):
+def time_2_num_and_labels( dates, date_strI='%Y-%m-%d', date_strII='%Y-%m-%d %H:%M' ):
+    """ Convert strings of time into datetime objects
+    NOTES:
+      - Atempts two different date string formats used by fromGEO
+    """
     try:
         labels = [ time.strftime('%b', i) \
-            for i in  [time.strptime(date, '%Y-%m-%d') for date in dates]  ]
+            for i in  [time.strptime(date, date_strI) for date in dates]  ]
     except:
         labels = [ time.strftime('%b', i) \
-            for i in [time.strptime(date, '%Y-%m-%d %H:%M') for date in dates] ]
+            for i in [time.strptime(date, date_strII) for date in dates] ]
 
     dates = np.array( [mpl.dates.datestr2num(date) for date in dates] )
     return dates, labels 
 
 
 def fit_sine(data, t):
-    """ Fit Sinusoidal to curve """
+    """ Fit Sinusoidal to data """
     guess_a, guess_b, guess_c = np.mean(data), 3*np.std(data)/(2**0.5), 0
     data_first_guess = guess_b*np.sin(t+guess_c) + guess_a
     optimize_func = lambda x: x[0]*np.sin(t+x[2]) + x[1] - data
@@ -162,9 +184,8 @@ def fitSine(tList,yList,freq):
    return (phase,amplitude,bias)
    
    
-   
 def get_feed_ID( feed='PV', units='(kWh day$^{-1}$)' ):
-    """ Dictionary of feed ID numbers """
+    """ Retrive feed ID from dictionary of feed ID numbers """
 
     d = {
     'GRID': {
