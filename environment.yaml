@@ -1,0 +1,10 @@
+name: PyHomeENRG
+channels:
+    - defaults
+dependencies:
+    - python=3.9
+    - matplotlib
+    - numpy
+    - pandas
+    - pytest
+    - scipy
